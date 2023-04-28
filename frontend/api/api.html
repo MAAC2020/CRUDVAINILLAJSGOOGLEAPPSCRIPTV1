@@ -1,0 +1,64 @@
+<script>
+  //clase conexion
+  class Conexion {
+    parametrosGlobales = {
+      //ids de las base a utilizar
+      idDataBase: {
+        idBaseDeDatos: "1gU2mx8cBpL_4H5vouFGgr9rusETdNd6IrBzmP9fOJaQ",
+      },
+      //nombre de las tablas utilizar
+      nameTables: {
+        tablaUsuario: "Usuario",
+      },
+      //nombre de los campos a actualizar
+      nameFieldUpdate: {
+        nombreCampoActualizarId: "id",
+      },
+    };
+
+    //metodo ejecutar cualquier funcion del backend
+    async api(funcion, ...argumentos) {
+      console.log(funcion);
+      console.log(argumentos);
+
+      let promesa = new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((el) => {
+            //se parse la respuesta y se retorna
+            //@return success: todo correcto
+            //se retorna resolve si todo esta correcto
+            resolve(JSON.parse(el));
+          })
+          .withFailureHandler((err) => {
+            //se parse la respuesta y se retorna
+            //@return error: hubo algun error
+            //se retorna reject si hay algun error en la promesa
+            reject(JSON.parse(err));
+          })
+          [funcion](argumentos);
+      });
+
+      let respuesta = await promesa;
+      //@return respuesta
+      return respuesta;
+    }
+
+    mostrarLoader() {
+      //añadir la clase show al elemento
+      let elementoLoader = document.querySelector("#loader");
+      //remover d-none y añadir show
+      elementoLoader.classList.remove("d-none");
+      elementoLoader.classList.add("show");
+    }
+
+    ocultarLoader() {
+      //añadir la clase show al elemento
+      let elementoLoader = document.querySelector("#loader");
+      //añadir d-none y remover show
+      elementoLoader.classList.add("d-none");
+      elementoLoader.classList.remove("show");
+    }
+  }
+
+  //fin de la clase conexion
+</script>

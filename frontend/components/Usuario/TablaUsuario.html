@@ -1,0 +1,314 @@
+<!-- -------------------------------------------------------------------------------------------------------- -->
+<!-- COMPONENTE ESTRUCTURA -->
+<div class="container-fluid mt-5">
+  <div class="row">
+    <div class="col-12">
+      <button type="button" class="btn btn-primary" id="recargar">
+        Recargar Tabla
+      </button>
+    </div>
+    <div
+      class="col-12 table-responsive mt-4 bg-white p-4 border border-1 rounded-4 mt-5 shadow-lg p-3 mb-5 bg-body rounded"
+    >
+      <table class="table hover" id="tabla">
+        <thead>
+          <tr>
+            <th scope="col">id</th>
+            <th scope="col">usuario</th>
+            <th scope="col">contraseña</th>
+            <th scope="col">rol</th>
+            <th scope="col">estado</th>
+            <th scope="col">editar</th>
+          </tr>
+        </thead>
+        <tbody id="tabla_body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- FIN DEL COMPONENTE -->
+
+<!-- MODAL EDITAR USUARIO-->
+<div
+  class="modal fade"
+  id="modalEditarUsuario"
+  tabindex="-1"
+  aria-labelledby="exampleModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div
+      class="modal-content bg-white p-4 border border-1 rounded-4 mt-5 shadow-lg p-3 mb-5 bg-body rounded"
+    >
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Editar Usuario</h1>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="formUsuarioEditar">
+          <div class="row">
+            <!-- SECCION USUARIO -->
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xxl-12">
+              <div class="form-label text-muted fw-bold">Usuario</div>
+              <!-- CAMPO OCULTO QUE ES EL VALOR A MODIFICAR -->
+              <input type="hidden" name="id" />
+              <input
+                class="form-control rounded-4 pt-2 pb-2"
+                type="email"
+                name="usuario"
+              />
+            </div>
+
+            <!-- SECCION CONTRASEÑA -->
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xxl-12">
+              <div class="form-label text-muted fw-bold">Contraseña</div>
+              <input
+                class="form-control rounded-4 pt-2 pb-2"
+                type="password"
+                name="contrasena"
+              />
+            </div>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xxl-12">
+              <div class="form-label text-muted fw-bold">rol</div>
+              <select class="form-select" name="rol">
+                <option value="">Seleccione</option>
+                <option value="admin">admin</option>
+                <option value="tecnico">tecnico</option>
+              </select>
+            </div>
+          </div>
+          <div class="row mt-5">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xxl-12">
+              <button
+                type="submit"
+                class="btn btn-primary-esago"
+                data-bs-dismiss="modal"
+              >
+                Guardar
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-primary-esago"
+          data-bs-dismiss="modal"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- FIN MODAL EDITAR USUARIO -->
+
+<script>
+  //controlador para editar el usuario
+  //@param {Array Stringifify}  data: es el registro de la tabla a editar
+  function controladorEditarUsuario(data) {
+    //instancia de la clase del componente de la tabla
+    let componenteTablaUsuario = new Component();
+    //se llama a la instancia y el metodo a editar
+    componenteTablaUsuario.editar(data);
+  }
+
+  class Component extends Conexion {
+    //meotodo constructor
+    constructor(id) {
+      //con super podemos acceder a los atributos y metodos de la clase Conexion
+      super();
+    }
+
+    //metodo para editar el usuario abrir el modal
+    //@param {Array Stringifify}  data: es el registro de la tabla a editar
+    //mostrar en el modal los datos
+    editar(data) {
+      try {
+        console.log("DENTRO DE LA CLASE DATA PARA EDITAR" + data);
+        let valoresFormulario = JSON.parse(data);
+        // Iteramos sobre las propiedades del objeto
+        Object.keys(valoresFormulario).map((propiedad) => {
+          // Buscamos el elemento del formulario correspondiente a la propiedad
+          const elemento = document.querySelector(`[name=${propiedad}]`);
+
+          if (elemento) {
+            // Asignamos el valor correspondiente al elemento
+            elemento.value = valoresFormulario[propiedad];
+          }
+        });
+      } catch (e) {
+        console.log("error");
+        console.log(e);
+      }
+    }
+
+    //guardar edicion
+    //@param {Stringify Object}: data: es el objeto en json de la edicion
+    async guardarEdicion(data) {
+      try {
+        //mostrar loader
+        this.mostrarLoader();
+
+        let { id } = JSON.parse(data);
+
+        let campo = JSON.stringify(
+          this.parametrosGlobales.nameFieldUpdate.nombreCampoActualizarId
+        );
+        let valor = JSON.stringify(id);
+
+        let update = await this.api(
+          "update",
+          data,
+          this.parametrosGlobales.nameTables.tablaUsuario,
+          this.parametrosGlobales.idDataBase.idBaseDeDatos,
+          campo,
+          valor
+        );
+
+        //ocultar loader
+        this.ocultarLoader();
+        //si la respuesta es success mostrar alerta de success
+        //de lo contrario mostrar alerta de error
+
+        update == "success" &&
+          Swal.fire("Actualizado!", "Actualizado Correctamente", "success");
+
+        update == "error" &&
+          Swal.fire(
+            "Error!",
+            "Ups lo sentimos hubo un error intenta mas tarde!",
+            "error"
+          );
+
+        update == "warning" &&
+          Swal.fire(
+            "No se encuentra!",
+            "El registro que esta tratando de actualizar no se encontro en la base de datos!",
+            "warning"
+          );
+
+        //recargar la tabla
+        this.obtenerRegistrosTabla();
+      } catch (e) {
+        console.log(e);
+        console.log("ERROR");
+        Swal.fire(
+          "Error!",
+          "Ups lo sentimos hubo un error intenta mas tarde!",
+          "error"
+        );
+        //se ejecuta la funcionalidad de ocultar el loader
+        this.ocultarLoader();
+      }
+    }
+
+    async obtenerRegistrosTabla() {
+      try {
+        //mostrar loader
+        this.mostrarLoader();
+
+        let get = await this.api(
+          "readAll",
+          this.parametrosGlobales.nameTables.tablaUsuario,
+          this.parametrosGlobales.idDataBase.idBaseDeDatos
+        );
+
+        console.log(get);
+        //cuando el documento este listo en la tabla recargar la configuracion del datatable
+        $(document).ready(() => {
+          //destruir y limpiar la tabla antes de obtener los datos
+          $("#tabla").DataTable().clear().destroy();
+
+          if (get.length > 0) {
+            get.map((el) => {
+              let dataRegistro = JSON.stringify(el);
+              $("#tabla_body").append(/*html*/ `
+                      <tr>
+                        <td>${el.id}</td>
+                        <td>${el.usuario}</td>
+                        <td>${el.contrasena}</td>
+                        <td>${el.rol}</td>
+                        <td>${el.estado}</td>
+                      <td>
+                        <button type="button"
+                        class="btn btn-primary-esago"
+                        data-bs-toggle="modal" data-bs-target="#modalEditarUsuario"
+                        onclick='controladorEditarUsuario(${JSON.stringify(
+                          dataRegistro
+                        )})'
+                        >
+                          <i class="bi bi-pencil-fill"></i>
+                        </button>
+  
+                      </td>
+                    </tr>`);
+            });
+          }
+
+          //@param {object} configuracionDatatable: es la configuracion del datatable en español
+          $("#tabla").DataTable(configuracionDataTable);
+          //ocultar loader
+          this.ocultarLoader();
+        });
+      } catch (e) {
+        $(document).ready(() => {
+          //destruir y limpiar la tabla antes de obtener los datos
+          $("#tabla").DataTable().clear().destroy();
+          //@param {object} configuracionDatatable: es la configuracion del datatable en español
+          $("#tabla").DataTable(configuracionDataTable);
+
+          //ocultar loader
+          this.ocultarLoader();
+        });
+      }
+    }
+  }
+
+  //use Effect apenas se lea todo del documento se debe realiza la instancia funciona como un useEffect de react js
+  $(document).ready(() => {
+    console.log("EJECUTADO 1 SOLA VEZ");
+    //instancia de la clase
+    let componenteTablaUsuario = new Component();
+    //obtener datos apenas cargue el componente
+    componenteTablaUsuario.obtenerRegistrosTabla();
+
+    //al apretar sobre el boton volver a recargar los datos de la tabla
+    const btnRecargarUsuario = document.getElementById("recargar");
+    btnRecargarUsuario.addEventListener("click", () => {
+      console.log("apretado recargar");
+      componenteTablaUsuario.obtenerRegistrosTabla();
+    });
+
+    //subir datos del formulario de edicion de usuario
+    const formEditarUsuario = document.querySelector("#formUsuarioEditar");
+    formEditarUsuario.addEventListener("submit", (e) => {
+      //evitar que la web se recargue
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+
+      const dataConvertida = JSON.stringify(data);
+
+      console.log("DATA EDITADA" + dataConvertida);
+
+      //ejecutar funcion de guardar edicion
+      componenteTablaUsuario.guardarEdicion(dataConvertida);
+    });
+  });
+</script>
+
+<!-- CSS -->
+<style>
+  .component_background {
+    background-color: #f54;
+  }
+</style>
+<!-- FIN CSS -->
+<!-- -------------------------------------------------------------------------------------------------------- -->

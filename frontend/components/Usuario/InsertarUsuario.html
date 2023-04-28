@@ -1,0 +1,163 @@
+<!-- formulario para insertar -->
+<form
+  class="bg-white p-4 border border-1 rounded-4 mt-5 shadow-lg p-3 mb-5 bg-body rounded"
+  id="formUsuario"
+>
+  <div class="form-group text-center mb-4">
+    <h1>Registar Usuario</h1>
+  </div>
+  <div class="row">
+    <!-- SECCION USUARIO -->
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xxl-12">
+      <div class="form-label text-muted fw-bold">Usuario</div>
+      <input
+        class="form-control rounded-4 pt-2 pb-2"
+        type="email"
+        name="usuario"
+      />
+    </div>
+
+    <!-- SECCION CONTRASEÑA -->
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xxl-12">
+      <div class="form-label text-muted fw-bold">Contraseña</div>
+      <input
+        class="form-control rounded-4 pt-2 pb-2"
+        type="password"
+        name="contrasena"
+      />
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xxl-12">
+      <div class="form-label text-muted fw-bold">rol</div>
+      <select class="form-select" name="rol">
+        <option value="">Seleccione</option>
+        <option value="admin">admin</option>
+        <option value="tecnico">tecnico</option>
+      </select>
+    </div>
+  </div>
+  <div class="row mt-5">
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xxl-12">
+      <button type="submit" class="btn btn-primary-esago">
+        Guardar
+        <i class="bi bi-cloud-arrow-up-fill"></i>
+      </button>
+    </div>
+  </div>
+</form>
+<!-- fin formulario insertar -->
+
+<script>
+  //clase usuario
+  class Usuario extends Conexion {
+    //propiedades
+    timestamp = Date.now().toString(16); // Convierte la fecha actual en una cadena hexadecimal
+    randomNum = Math.floor(Math.random() * 10000).toString(16); // Genera un número aleatorio y lo convierte en una cadena hexadecimal
+    //metodo constructor
+    constructor(contrasena, rol, usuario) {
+      //con super podemos acceder a los atributos y metodos de la clase Conexion
+      super();
+      //propiedades
+      this.id = `${this.timestamp}-${this.randomNum}`;
+      this.contrasena = contrasena;
+      this.rol = rol;
+      this.estado = "activo";
+      this.usuario = usuario;
+    }
+
+    //METODOS DE LA CLASE
+    //metodo para registrar usuario
+    async registrar() {
+      try {
+        //se ejecuta la funcionalidad de mostrar el Loader
+        this.mostrarLoader();
+        //acceder a las propiedades y crear un objeto
+        let data = {
+          id: this.id,
+          contrasena: this.contrasena,
+          rol: this.rol,
+          estado: this.estado,
+          usuario: this.usuario,
+        };
+        //convertir data a Json
+        let dataJson = JSON.stringify(data);
+
+        console.log("DATA SIN CONVERTIR CONVERTIDA", data);
+
+        let post = await this.api(
+          "insert",
+          dataJson,
+          this.parametrosGlobales.nameTables.tablaUsuario,
+          this.parametrosGlobales.idDataBase.idBaseDeDatos
+        );
+
+        post == "success"
+          ? Swal.fire("Guardado", "Guardado Correctamente", "success")
+          : Swal.fire(
+              "Error!",
+              "Ups lo sentimos hubo un error intenta mas tarde!",
+              "error"
+            );
+
+        //limpiar el formulario
+        this.limpiarFormulario();
+        //se ejecuta la funcionalidad de ocultar el loader
+        this.ocultarLoader();
+      } catch (e) {
+        console.log(e);
+        console.log("ERROR");
+        Swal.fire(
+          "Error!",
+          "Ups lo sentimos hubo un error intenta mas tarde!",
+          "error"
+        );
+        //se ejecuta la funcionalidad de ocultar el loader
+        this.ocultarLoader();
+      }
+    }
+
+    //limpiar formulario registro de usuario
+    limpiarFormulario() {
+      document.querySelector("#formUsuario").reset();
+    }
+  }
+
+  //use Effect apenas se lea todo del documento se debe realiza la instancia funciona como un useEffect de react js
+  $(document).ready(() => {
+    //capturar informacion del formulario
+    document.querySelector("#formUsuario").addEventListener("submit", (e) => {
+      //evitar que la web se recargue
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+
+      const dataConvertida = JSON.stringify(data);
+
+      console.log(dataConvertida);
+
+      //desestructurar los datos del formulario
+      let { usuario, contrasena, rol } = JSON.parse(dataConvertida);
+
+      //instancia de la clase
+      let nuevoUsuario = new Usuario(contrasena, rol, usuario);
+
+      //registrar el usuario
+      nuevoUsuario.registrar();
+    });
+  });
+</script>
+<!-- estilos globales     -->
+<style>
+  .btn-primary-esago {
+    background-color: #ffda55 !important;
+    border-color: #ffda55 !important;
+    color: #038450 !important;
+  }
+
+  .btn-primary-esago:hover {
+    background-color: #ffe16f !important;
+    border-color: #ffe16f !important;
+    color: #038450 !important;
+  }
+</style>
+
+<!-- -------------------------------------------------------------------------------------------------------- -->
+<!-- FIN REGISTRO DE USUARIO -->
